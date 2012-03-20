@@ -1,0 +1,16 @@
+#!/bin/bash
+WID=`xprop -root _NET_ACTIVE_WINDOW | awk '{print $NF}'`
+if [ $WID != 0x0 ]; then
+    PID=`xprop -id $WID _NET_WM_PID | awk '{print $NF}'`
+else
+    PID=$$
+fi
+
+# fish for a shell in terminal emulator's child processes
+function shell-pids() {
+    pstree $1 -p | grep 'bash\|zsh' | sed -e 's/.*\(bash\|zsh\)[(]\([0-9]\+\)[)].*/\2/'
+}
+PID=$( (shell-pids $PID; echo $PID) | head -n 1)
+
+cd `pwdx $PID | awk -e '{print $NF}'`
+exec $*
